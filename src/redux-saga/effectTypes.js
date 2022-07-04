@@ -10,3 +10,5 @@ export const CALL = 'CALL'
 // 第一个参数是错误对象，第二个参数是返回值
 // components style
 export const CPS = 'CPS'
+
+export const ALL = 'ALL'

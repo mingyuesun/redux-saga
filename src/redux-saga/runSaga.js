@@ -1,5 +1,5 @@
-import { TAKE, PUT, FORK, CALL, CPS } from './effectTypes'
-export default function runSaga(env, saga) {
+import { TAKE, PUT, FORK, CALL, CPS, ALL } from './effectTypes'
+export default function runSaga(env, saga, callback) {
 	const { channel, dispatch } = env
 	// 如果 saga 是生成器，执行一下得到迭代器；如果已经是迭代器了，就直接用
 	let it = typeof saga === 'function' ? saga() : saga
@@ -43,11 +43,27 @@ export default function runSaga(env, saga) {
 								next(data)
 							}
 						})
+						break
+					case ALL:
+						const { iterators } = effect
+						let result = []
+						let count = 0
+						iterators.forEach((iterator, index) => {
+							// 每完成一个 saga 后会执行回调
+							runSaga(env, iterator, (data) => {
+								result[index] = data
+								if (++count === iterators.length) {
+									next(result)
+								}
+							})
+						})
 						break		
 					default:
 						break
 				}
 			}
+		} else {
+			callback && callback(effect)
 		}
 	}
 	next()
