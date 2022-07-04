@@ -1,10 +1,16 @@
-import { TAKE, PUT, FORK } from './effectTypes'
+import { TAKE, PUT, FORK, CALL, CPS } from './effectTypes'
 export default function runSaga(env, saga) {
 	const { channel, dispatch } = env
 	// 如果 saga 是生成器，执行一下得到迭代器；如果已经是迭代器了，就直接用
 	let it = typeof saga === 'function' ? saga() : saga
-	function next(value) {
-		let { value: effect, done } = it.next(value)
+	function next(value, isError) {
+		let result
+		if (isError) {
+			result = it.throw(value)
+		} else {
+			result = it.next(value)
+		}
+		let { value: effect, done } = result
 		if (!done) {
 			// 如果 value 或者 effect 是一个迭代器
 			if (typeof effect[Symbol.iterator] === 'function') {
@@ -25,7 +31,19 @@ export default function runSaga(env, saga) {
 					case FORK:
 						runSaga(env, effect.saga)
 						next()
-						break	
+						break
+					case CALL:
+						effect.fn(...effect.args).then(next)
+						break
+					case CPS:
+						effect.fn(...effect.args, (err, data) => {
+							if (err) {
+								next(err, true)
+							} else {
+								next(data)
+							}
+						})
+						break		
 					default:
 						break
 				}
