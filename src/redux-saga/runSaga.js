@@ -1,4 +1,4 @@
-import { TAKE, PUT } from './effectTypes'
+import { TAKE, PUT, FORK } from './effectTypes'
 export default function runSaga(env, saga) {
 	const { channel, dispatch } = env
 	// 如果 saga 是生成器，执行一下得到迭代器；如果已经是迭代器了，就直接用
@@ -22,6 +22,10 @@ export default function runSaga(env, saga) {
 						dispatch(effect.action) // 有些指令不受阻塞，会继续向下执行，比如 put
 						next()
 						break
+					case FORK:
+						runSaga(env, effect.saga)
+						next()
+						break	
 					default:
 						break
 				}
