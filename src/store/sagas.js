@@ -1,6 +1,7 @@
-import { put, take, fork } from '../redux-saga/effects' // 指令对象
+import { put, takeEvery } from '../redux-saga/effects' // 指令对象
 import { ADD, ASYNC_ADD } from './action-types'
 
+// 为了方便测试，希望产出的都是普通对象
 function delay(ms) {
 	return new Promise(resolve => {
 		setTimeout(resolve, ms)
@@ -12,8 +13,8 @@ function* addWorkerSaga() {
 }
 
 function* watcherSaga() {
-	yield take(ASYNC_ADD)
-	yield fork(addWorkerSaga)
+	// 监听每一次的 ASYNC_ADD 动作，每次派发动作都会执行 addWorkerSaga 
+	yield takeEvery(ASYNC_ADD, addWorkerSaga)
 	console.log('done')
 }
 
