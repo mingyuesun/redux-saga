@@ -1,4 +1,4 @@
-import { put, takeEvery, call, cps } from '../redux-saga/effects' // 指令对象
+import { put, takeEvery, cps } from '../redux-saga/effects' // 指令对象
 import { ADD, ASYNC_ADD } from './action-types'
 
 //为了方便测试，希望产出的都是普通对象
@@ -9,13 +9,17 @@ import { ADD, ASYNC_ADD } from './action-types'
 // }
 function delay(ms, callback) {
 	setTimeout(() => {
-		callback(null, 'ok')
+		callback("错误对象", 'ok')
 	}, ms)
 }
 function* addWorkerSaga() {
 	// yield delay(1000)
 	// yield call(delay, 1000)
-	yield cps(delay, 1000)
+	try {
+		yield cps(delay, 1000)
+	} catch (error) {
+		console.error(error)
+	}
 	yield put({type: ADD})
 }
 
