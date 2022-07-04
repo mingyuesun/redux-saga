@@ -1,4 +1,4 @@
-import { TAKE, PUT, FORK, CALL, CPS, ALL } from './effectTypes'
+import { TAKE, PUT, FORK, CALL, CPS, ALL, CANCEL } from './effectTypes'
 
 export function take(actionType) {
 	// 等待有人向 store 派发 actionType 这个类型的动作，派发后才会让当前的 saga 继续执行，否则就停在这
@@ -33,4 +33,18 @@ export function cps(fn, ...args) {
 
 export function all(iterators) {
 	return { type: ALL, iterators }
+}
+
+function delayFn(ms) {
+	return new Promise(resolve => {
+		setTimeout(resolve, ms)
+	})
+}
+
+export function delay(...args) {
+	return call(delayFn, ...args)
+}
+
+export function cancel(task) {
+	return { type: CANCEL, task }
 }

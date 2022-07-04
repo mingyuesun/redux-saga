@@ -12,3 +12,7 @@ export const CALL = 'CALL'
 export const CPS = 'CPS'
 
 export const ALL = 'ALL'
+
+export const CANCEL = 'CANCEL'
+
+export const CANCEL_TASK = 'CANCEL_TASK'

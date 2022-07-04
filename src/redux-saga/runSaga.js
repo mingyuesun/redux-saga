@@ -1,5 +1,6 @@
-import { TAKE, PUT, FORK, CALL, CPS, ALL } from './effectTypes'
+import { TAKE, PUT, FORK, CALL, CPS, ALL, CANCEL, CANCEL_TASK } from './effectTypes'
 export default function runSaga(env, saga, callback) {
+	const task = { cancel: () => next(CANCEL_TASK) }
 	const { channel, dispatch } = env
 	// 如果 saga 是生成器，执行一下得到迭代器；如果已经是迭代器了，就直接用
 	let it = typeof saga === 'function' ? saga() : saga
@@ -7,6 +8,8 @@ export default function runSaga(env, saga, callback) {
 		let result
 		if (isError) {
 			result = it.throw(value)
+		} else if (value === CANCEL_TASK) {
+			result = it.return(value)
 		} else {
 			result = it.next(value)
 		}
@@ -29,8 +32,8 @@ export default function runSaga(env, saga, callback) {
 						next()
 						break
 					case FORK:
-						runSaga(env, effect.saga)
-						next()
+						let forkTask = runSaga(env, effect.saga)
+						next(forkTask)
 						break
 					case CALL:
 						effect.fn(...effect.args).then(next)
@@ -57,7 +60,11 @@ export default function runSaga(env, saga, callback) {
 								}
 							})
 						})
-						break		
+						break
+					case CANCEL:
+						effect.task.cancel()
+						next()
+						break			
 					default:
 						break
 				}
@@ -67,4 +74,5 @@ export default function runSaga(env, saga, callback) {
 		}
 	}
 	next()
+	return task
 }

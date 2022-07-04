@@ -1,25 +1,19 @@
-import { put, take, all } from '../redux-saga/effects' // 指令对象
-import { ADD, ASYNC_ADD } from './action-types'
+import { put, take, delay, fork, cancel } from '../redux-saga/effects' // 指令对象
+import { ADD, STOP } from './action-types'
 
-function* add1() {
-	for (let i = 0; i < 1; i++) {
-		yield take(ASYNC_ADD)
+function* add() {
+	while(true) {
+		yield delay(1000)
 		yield put({ type: ADD })
 	}
-	console.log('add1 done')
-	return 'add1Result'
 }
 
-function* add2() {
-	for (let i = 0; i < 2; i++) {
-		yield take(ASYNC_ADD)
-		yield put({ type: ADD })
-	}
-	console.log('adde done')
-	return 'add2Result'
+function* addWatcher() {
+	const task = yield fork(add)
+	yield take(STOP)
+	yield cancel(task)
 }
 
 export default function* rootSaga() {
-	const result = yield all([add1(), add2()])
-	console.log('rootSaga done', result)
+	yield addWatcher()	
 }
